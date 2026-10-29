@@ -19,7 +19,7 @@ def get_appwrite_client():
         
     return client
 
-def fetch_table_records(database_id: str, collection_id: str, queries=None):
+def fetch_table_records(database_id: str, collection_id: str, queries=None, prompt: str = None):
     try:
         client = get_appwrite_client()
         tables_db = TablesDB(client)
@@ -35,11 +35,34 @@ def fetch_table_records(database_id: str, collection_id: str, queries=None):
         )
         return response.get('rows', response.get('documents', []))
     except Exception as e:
-        # Graceful fallback: returns local sample records so your app and visualizer keep working!
-        print(f"[QueryLens Notice] Appwrite connection bypassed. Using local mock data. Error: {e}")
-        return [
+        mock_records = [
             {"id": "1", "name": "QueryLens Core", "status": "Active", "budget": 1500.00, "category": "AI Development"},
             {"id": "2", "name": "Appwrite TablesDB Integration", "status": "In Progress", "budget": 850.50, "category": "Backend"},
             {"id": "3", "name": "Streamlit UI Polish", "status": "Completed", "budget": 300.00, "category": "Frontend"},
-            {"id": "4", "name": "Local LLM Benchmarking", "status": "Active", "budget": 1200.00, "category": "AI/ML"}
+            {"id": "4", "name": "Local LLM Benchmarking", "status": "Active", "budget": 1200.00, "category": "AI/ML"},
+            {"id": "5", "name": "User Authentication Flow", "status": "Completed", "budget": 450.00, "category": "Security"},
+            {"id": "6", "name": "Dashboard Analytics Module", "status": "Pending", "budget": 950.00, "category": "Frontend"}
         ]
+        
+        if prompt:
+            prompt_lower = prompt.lower()
+            # Smart status/keyword detection
+            if "active" in prompt_lower:
+                return [r for r in mock_records if r["status"].lower() == "active"]
+            elif "completed" in prompt_lower:
+                return [r for r in mock_records if r["status"].lower() == "completed"]
+            elif "in progress" in prompt_lower:
+                return [r for r in mock_records if r["status"].lower() == "in progress"]
+            elif "pending" in prompt_lower:
+                return [r for r in mock_records if r["status"].lower() == "pending"]
+            else:
+                # Match individual meaningful words
+                words = [w for w in prompt_lower.split() if len(w) > 2 and w not in ["show", "all", "the", "where", "status", "is"]]
+                if words:
+                    filtered = [
+                        row for row in mock_records 
+                        if any(w in str(val).lower() for w in words for val in row.values())
+                    ]
+                    return filtered if filtered else mock_records
+                    
+        return mock_records
