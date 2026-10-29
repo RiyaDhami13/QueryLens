@@ -1,0 +1,7 @@
+streamlit
+pandas
+plotly
+requests
+pydantic
+appwrite
+ollama
